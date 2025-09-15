@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="caramelo_hardware">
+  <class name="caramelo_hardware/CarameloProxySystem"
+         type="caramelo_hardware::CarameloProxySystem"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>Proxy hardware system for Caramelo robot bridging ros2_control velocity commands to a topic for a Python PCA9685 driver.</description>
+  </class>
+</library>

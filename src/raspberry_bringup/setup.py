@@ -19,11 +19,12 @@ setup(
     zip_safe=True,
     maintainer='raspberrypi',
     maintainer_email='raspberrypi@todo.todo',
-    description='TODO: Package description',
+    description='Bringup package for Caramelo robot on Raspberry Pi (robot description publication, control, PCA9685 motor interface).',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'pca9685_interface = raspberry_bringup.pac9685_controller:main',
         ],
     },
 )

@@ -40,7 +40,7 @@ mecanum_controller:
     odom_frame_id: odom
 
     # Publicar TF da odometria
-    enable_odom_tf: false
+    enable_odom_tf: true
 
     # Prefixo TF (mantido vazio => usa namespace do controlador se configurado)
     tf_frame_prefix_enable: true
@@ -50,15 +50,15 @@ mecanum_controller:
     twist_covariance_diagonal: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     pose_covariance_diagonal:  [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 
-    # (Exemplos de limites se quiser ativar depois)
-    # linear_velocity.x.has_velocity_limits: true
-    # linear_velocity.x.max_velocity: 0.8
-    # linear_velocity.y.has_velocity_limits: true
-    # linear_velocity.y.max_velocity: 0.8
-    # angular_velocity.z.has_velocity_limits: true
-    # angular_velocity.z.max_velocity: 2.0
+    # Limites de velocidade atualizados (máx. 1.5 m/s)
+    linear_velocity.x.has_velocity_limits: true
+    linear_velocity.x.max_velocity: 1.5
+    linear_velocity.y.has_velocity_limits: true
+    linear_velocity.y.max_velocity: 1.5
+    angular_velocity.z.has_velocity_limits: true
+    angular_velocity.z.max_velocity: 2.0
 
     # (Ganhos PID se o modo interno suportar futuramente – não aplicável agora)
-    # linear_velocity.x.kp: 1.0
-    # linear_velocity.y.kp: 1.0
-    # angular_velocity.z.kp: 1.0
+    linear_velocity.x.kp: 1.0
+    linear_velocity.y.kp: 1.0
+    angular_velocity.z.kp: 1.0

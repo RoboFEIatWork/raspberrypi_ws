@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>caramelo_hardware</name>
+  <version>0.0.1</version>
+  <description>Hybrid hardware proxy for Caramelo robot (ros2_control -> topic -> Python PCA9685)</description>
+  <maintainer email="maintainer@example.com">caramelo</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+    <hardware_interface plugin="caramelo_hardware/plugin.xml"/>
+  </export>
+</package>

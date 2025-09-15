@@ -4,10 +4,9 @@
     <!-- ros2_control configuration for Caramelo mecanum drive robot (real robot) -->
     <ros2_control name="RobotSystem" type="system">
 
-        <!-- Plugin de hardware do ROS 2 Control (genérico/mock por enquanto). -->
-        <!-- Substitua por seu plugin real futuramente, ex: caramelo_hardware/CarameloSystem -->
+        <!-- Plugin de hardware híbrido: proxy C++ + driver Python PCA9685 -->
         <hardware>
-            <plugin>mock_components/GenericSystem</plugin>
+            <plugin>caramelo_hardware/CarameloProxySystem</plugin>
         </hardware>
 
         <!-- Front Left Wheel Joint -->
