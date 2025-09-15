@@ -24,7 +24,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'odometry_node = raspberry_bringup.odometry_node:main',
         ],
     },
 )

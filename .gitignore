@@ -2,4 +2,5 @@
 build/
 install/
 log/
+.vscode/
 colcon_install_layout.*
