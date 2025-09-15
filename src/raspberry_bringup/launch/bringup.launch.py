@@ -29,9 +29,9 @@ def generate_launch_description():
     declare_controllers_file = DeclareLaunchArgument('controllers_file', default_value=os.path.join(pkg_controller, 'config', 'robot_controllers.yaml'), description='ros2_control controllers YAML')
     declare_start_pca9685 = DeclareLaunchArgument('start_pca9685', default_value='true', description='Start PCA9685 hardware interface node')
 
-    # Usa o executável xacro encontrado pelo sistema (evita depender do PATH)
+    # Usa o executável xacro encontrado pelo sistema (sem separador manual)
     robot_description = ParameterValue(
-        Command([FindExecutable(name='xacro'), ' ', robot_model]),
+        Command([FindExecutable(name='xacro'), robot_model]),
         value_type=str
     )
 
