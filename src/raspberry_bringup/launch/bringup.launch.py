@@ -2,7 +2,7 @@
 import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, Command
+from launch.substitutions import LaunchConfiguration, Command, FindExecutable
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.parameter_descriptions import ParameterValue
@@ -29,9 +29,13 @@ def generate_launch_description():
     declare_controllers_file = DeclareLaunchArgument('controllers_file', default_value=os.path.join(pkg_controller, 'config', 'robot_controllers.yaml'), description='ros2_control controllers YAML')
     declare_start_pca9685 = DeclareLaunchArgument('start_pca9685', default_value='true', description='Start PCA9685 hardware interface node')
 
-    robot_description = ParameterValue(Command(['xacro ', robot_model]), value_type=str)
+    # Usa o executável xacro encontrado pelo sistema (evita depender do PATH)
+    robot_description = ParameterValue(
+        Command([FindExecutable(name='xacro'), ' ', robot_model]),
+        value_type=str
+    )
 
-    # Publica robot_description e TF das juntas (sem estados dinâmicos próprios, joint_state_broadcaster fará /joint_states)
+    # Publica robot_description e TF das juntas
     rsp_node = Node(
         package='robot_state_publisher', executable='robot_state_publisher', name='robot_state_publisher', output='screen',
         parameters=[{'use_sim_time': use_sim_time}, {'robot_description': robot_description}]
