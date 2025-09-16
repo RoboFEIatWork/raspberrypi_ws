@@ -15,6 +15,6 @@
   <depend>std_msgs</depend>
 
   <export>
-    <hardware_interface plugin="caramelo_hardware/plugin.xml"/>
+  <hardware_interface plugin="${prefix}/plugin.xml"/>
   </export>
 </package>

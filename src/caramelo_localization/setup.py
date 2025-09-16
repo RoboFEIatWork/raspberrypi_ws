@@ -1,3 +1,4 @@
+import os
 from setuptools import find_packages, setup
 from glob import glob
 
@@ -11,9 +12,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-    # Optional launch and config folders (installed if present)
-    ('share/' + package_name + '/launch', glob('launch/*.py')),
-    ('share/' + package_name + '/config', glob('config/*')),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*')),
+        (os.path.join('share', package_name, 'config'), glob('config/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'kalman_filter = robot_localizacao.kalman_filter:main',
+            'kalman_filter = caramelo_localization.kalman_filter:main',
+            'imu_republisher.py = caramelo_localization.imu_republisher:main',
         ],
     },
 )

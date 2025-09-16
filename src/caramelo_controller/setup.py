@@ -23,9 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'twist_converter_node = robot_controller.twist_converter_node:main',
-            'simple_controller = robot_controller.simple_controller:main',
-            'noisy_controller = robot_controller.noisy_controller:main',
+            'twist_converter_node = caramelo_controller.twist_converter_node:main',
+            'odom_tf_broadcaster = caramelo_controller.odom_tf_broadcaster:main',
         ],
     },
 )
