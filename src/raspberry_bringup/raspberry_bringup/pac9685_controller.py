@@ -41,10 +41,10 @@ class PCA9685HardwareInterface(Node):
             'back_right_wheel_joint'
         ]
         self.motor_channels = {
-            'front_left_wheel_joint': 0,
-            'front_right_wheel_joint': 1,
-            'back_left_wheel_joint': 2,
-            'back_right_wheel_joint': 3
+            'front_left_wheel_joint': 14,
+            'front_right_wheel_joint': 11,
+            'back_left_wheel_joint': 13,
+            'back_right_wheel_joint': 9
         }
 
         self.last_pwm_values = [self.zero_pwm] * 4
