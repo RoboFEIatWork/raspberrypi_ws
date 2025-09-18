@@ -41,10 +41,10 @@ class PCA9685HardwareInterface(Node):
             'back_right_wheel_joint'
         ]
         self.motor_channels = {
-            'front_left_wheel_joint': 14,
-            'front_right_wheel_joint': 11,
-            'back_left_wheel_joint': 13,
-            'back_right_wheel_joint': 9
+            'front_left_wheel_joint': 10,
+            'front_right_wheel_joint': 15,
+            'back_left_wheel_joint': 11,
+            'back_right_wheel_joint': 14
         }
 
         self.last_pwm_values = [self.zero_pwm] * 4
@@ -78,19 +78,12 @@ class PCA9685HardwareInterface(Node):
         if len(msg.data) != 4:
             self.get_logger().warn('Comando de roda deve ter 4 valores (FL, FR, RL, RR)')
             return
-        clamped = []
-        for v in msg.data:
-            if v > self.max_wheel_rad_s:
-                clamped.append(self.max_wheel_rad_s)
-            elif v < -self.max_wheel_rad_s:
-                clamped.append(-self.max_wheel_rad_s)
-            else:
-                clamped.append(v)
-        if clamped != list(msg.data):
-            self.get_logger().warn('Velocidades clipadas ao limite.')
-
+        # Sem limite de velocidade: converte diretamente a velocidade alvo em PWM (apenas saturação de faixa PWM)
         pwm_values = []
-        for vel in clamped:
+        for idx, vel in enumerate(msg.data):
+            joint = self.joint_names[idx]
+            if joint in ('front_left_wheel_joint', 'back_left_wheel_joint'):
+                vel = -vel
             pwm = int(self.zero_pwm + self.k_pwm * vel)
             pwm = max(self.min_pwm, min(self.max_pwm, pwm))
             pwm_values.append(pwm)

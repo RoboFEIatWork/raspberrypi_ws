@@ -4,6 +4,8 @@ from glob import glob
 
 package_name = 'raspberry_bringup'
 
+# Simplificado: sem pre-clean agressivo (causou arquivo vazio). Colcon --symlink-install lida com substituição.
+
 setup(
     name=package_name,
     version='0.0.0',
@@ -12,7 +14,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+        # Only include existing launch files (some old ones were removed)
+        (os.path.join('share', package_name, 'launch'), [f for f in glob('launch/*.py') if os.path.isfile(f)]),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
