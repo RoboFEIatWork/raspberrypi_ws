@@ -24,7 +24,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'kalman_filter = caramelo_localization.kalman_filter:main',
             'imu_republisher.py = caramelo_localization.imu_republisher:main',
         ],
     },
