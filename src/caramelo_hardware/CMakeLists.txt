@@ -51,6 +51,7 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 install(FILES plugin.xml DESTINATION share/${PROJECT_NAME})
 
 ament_export_targets(export_${PROJECT_NAME})
