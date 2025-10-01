@@ -5,57 +5,116 @@ from std_msgs.msg import Float64MultiArray
 import board
 import busio
 from adafruit_pca9685 import PCA9685
+import math
 
-class PCA9685Controller(Node):
+class PCA9685HardwareInterface(Node):
     def __init__(self):
-        super().__init__('pca9685_controller')
-        self.get_logger().info('PCA9685 Controller started')
+        super().__init__('pca9685_hardware_interface')
+        self.PWM_FREQ = 488
+        self.max_robot_linear_speed = 1.5
+        self.wheel_radius = 0.05
+        self.gear_ratio = 28.0
+        self.max_motor_rpm = 8022.0
+        self.min_pwm = 0
+        self.zero_pwm = 32768
+        self.max_pwm = 65535
 
-        # Initialize I2C and PCA9685
-        i2c = busio.I2C(board.SCL, board.SDA)
-        self.pca = PCA9685(i2c)
-        self.pca.frequency = 1000  # Set PWM frequency
+        self.max_wheel_rad_s_limit = self.max_robot_linear_speed / self.wheel_radius
+        max_wheel_rpm_from_motor = self.max_motor_rpm / self.gear_ratio
+        max_wheel_rad_s_motor = (max_wheel_rpm_from_motor * 2 * math.pi) / 60.0
+        self.max_wheel_rad_s = min(self.max_wheel_rad_s_limit, max_wheel_rad_s_motor)
+        pwm_range = min(self.zero_pwm - self.min_pwm, self.max_pwm - self.zero_pwm)
+        self.k_pwm = pwm_range / self.max_wheel_rad_s
 
-        # Subscription to wheel commands
+        try:
+            self.i2c = busio.I2C(board.SCL, board.SDA)
+            self.pca = PCA9685(self.i2c)
+            self.pca.frequency = self.PWM_FREQ
+        except Exception as e:
+            self.get_logger().error(f'Falha ao inicializar PCA9685: {e}')
+            raise
+
+        self.joint_names = [
+            'front_left_wheel_joint',
+            'front_right_wheel_joint',
+            'back_left_wheel_joint',
+            'back_right_wheel_joint'
+        ]
+        self.motor_channels = {
+            'front_left_wheel_joint': 10,
+            'front_right_wheel_joint': 15,
+            'back_left_wheel_joint': 11,
+            'back_right_wheel_joint': 14
+        }
+
+        self.last_pwm_values = [self.zero_pwm] * 4
+
+        # Assina comandos do proxy hardware
         self.subscription = self.create_subscription(
             Float64MultiArray,
-            'wheel_commands_raw',
-            self.listener_callback,
-            10)
-        self.subscription  # prevent unused variable warning
+            '/wheel_commands_raw',
+            self.wheel_command_callback,
+            10
+        )
 
-        # PCA9685 has 16 channels
-        self.motor_channels = [0, 1, 2, 3] # Example: channels for 4 motors
+        for ch in self.motor_channels.values():
+            try:
+                self.pca.channels[ch].duty_cycle = self.zero_pwm
+            except Exception as e:
+                self.get_logger().warn(f'Falha ao setar neutro no canal {ch}: {e}')
 
-    def listener_callback(self, msg):
-        # msg.data contains wheel speeds, e.g., [-1.0 to 1.0]
-        # This logic needs to be adapted to convert wheel speeds to PWM duty cycles
-        # For example, mapping [-1.0, 1.0] to [0, 0xFFFF]
-        if len(msg.data) >= len(self.motor_channels):
-            for i, channel_index in enumerate(self.motor_channels):
-                speed = msg.data[i]
-                # Basic conversion - THIS IS A PLACEHOLDER
-                # You need to implement the correct logic for your motors
-                if speed > 0: # Forward
-                    duty_cycle = int(speed * 0xFFFF)
-                elif speed < 0: # Backward
-                    duty_cycle = int(-speed * 0xFFFF)
-                else: # Stop
-                    duty_cycle = 0
-                
-                # This assumes a simple setup. Real motor drivers might need
-                # separate pins for direction and speed.
-                self.pca.channels[channel_index].duty_cycle = duty_cycle
-                # self.get_logger().info(f'Motor {i} (Channel {channel_index}): Speed {speed:.2f}, Duty Cycle {duty_cycle}')
-        else:
-            self.get_logger().warn('Received wheel_commands_raw with insufficient data.')
+        self.get_logger().info(
+            f'PCA9685 iniciado (hybrid). limite_roda={self.max_wheel_rad_s_limit:.2f} motor={max_wheel_rad_s_motor:.2f} usado={self.max_wheel_rad_s:.2f} k_pwm={self.k_pwm:.2f}'
+        )
+
+    def __del__(self):
+        try:
+            for ch in self.motor_channels.values():
+                self.pca.channels[ch].duty_cycle = self.zero_pwm
+        except Exception:
+            pass
+
+    def wheel_command_callback(self, msg: Float64MultiArray):
+        if len(msg.data) != 4:
+            self.get_logger().warn('Comando de roda deve ter 4 valores (FL, FR, RL, RR)')
+            return
+        # Sem limite de velocidade: converte diretamente a velocidade alvo em PWM (apenas saturação de faixa PWM)
+        pwm_values = []
+        for idx, vel in enumerate(msg.data):
+            joint = self.joint_names[idx]
+            if joint in ('front_left_wheel_joint', 'back_left_wheel_joint'):
+                vel = -vel
+            pwm = int(self.zero_pwm + self.k_pwm * vel)
+            pwm = max(self.min_pwm, min(self.max_pwm, pwm))
+            pwm_values.append(pwm)
+        self.last_pwm_values = pwm_values
+
+        for idx, joint in enumerate(self.joint_names):
+            ch = self.motor_channels[joint]
+            try:
+                self.pca.channels[ch].duty_cycle = pwm_values[idx]
+            except Exception as e:
+                self.get_logger().error(f'Falha ao escrever PWM no canal {ch}: {e}')
+
 
 def main(args=None):
     rclpy.init(args=args)
-    pca_controller = PCA9685Controller()
-    rclpy.spin(pca_controller)
-    pca_controller.destroy_node()
-    rclpy.shutdown()
+    node = PCA9685HardwareInterface()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+            try:
+                node.destroy_node()
+            except Exception:
+                pass
+            # Avoid RCLError: shutdown already called
+            try:
+                if rclpy.ok():
+                    rclpy.shutdown()
+            except Exception:
+                pass
 
 if __name__ == '__main__':
     main()
