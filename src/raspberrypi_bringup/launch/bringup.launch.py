@@ -47,7 +47,7 @@ def generate_launch_description():
     
     # 4. Driver do IMU (UM6)
     imu_driver_node = Node(
-        package="um7", # O pacote no workspace é 'um7'
+        package="umx_driver", # O pacote no workspace é 'umx_driver'
         executable="um6_driver", # O executável que você mencionou
         name="um7_driver",
         parameters=[{'port': '/dev/ttyUSB0'}],

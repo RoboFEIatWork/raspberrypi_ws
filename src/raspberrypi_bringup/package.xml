@@ -29,7 +29,7 @@
   <exec_depend>caramelo_hardware</exec_depend>
   <exec_depend>caramelo_localization</exec_depend>
   <exec_depend>rplidar_ros</exec_depend>
-  <exec_depend>um7</exec_depend>
+  <exec_depend>umx_driver</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

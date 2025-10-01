@@ -9,11 +9,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(caramelo_hardware REQUIRED)
-find_package(caramelo_controller REQUIRED)
-find_package(caramelo_localization REQUIRED)
 find_package(robot_localization REQUIRED)
 find_package(rplidar_ros REQUIRED)
-find_package(um7 REQUIRED)
 
 ament_python_install_package(${PROJECT_NAME})
 
@@ -23,8 +20,8 @@ install(PROGRAMS
 )
 
 install(
-    DIRECTORY launch
-    DESTINATION share/${PROJECT_NAME}/
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 if(BUILD_TESTING)

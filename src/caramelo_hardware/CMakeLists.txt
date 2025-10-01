@@ -42,19 +42,19 @@ ament_target_dependencies(${PROJECT_NAME}
 
 pluginlib_export_plugin_description_file(hardware_interface plugin.xml)
 
-install(TARGETS ${PROJECT_NAME}
-  EXPORT export_${PROJECT_NAME}
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
+install(
+  TARGETS ${PROJECT_NAME}
+  DESTINATION lib
 )
 
-install(DIRECTORY include/ DESTINATION include)
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
-install(FILES plugin.xml DESTINATION share/${PROJECT_NAME})
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 
-ament_export_targets(export_${PROJECT_NAME})
-ament_export_dependencies(hardware_interface pluginlib rclcpp rclcpp_lifecycle std_msgs)
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()
