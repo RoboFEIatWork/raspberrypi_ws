@@ -1,88 +1,86 @@
 import os
-from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+
 from ament_index_python.packages import get_package_share_directory
-from launch.conditions import IfCondition
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch_ros.actions import Node
+
 
 def generate_launch_description():
     
-    start_localization = LaunchConfiguration('start_localization')
-    start_pca9685 = LaunchConfiguration('start_pca9685')
+    # ========== PACOTES E ARQUIVOS ==========
+    pkg_caramelo_hardware = get_package_share_directory("caramelo_hardware")
+    pkg_caramelo_controller = get_package_share_directory("caramelo_controller")
+    pkg_caramelo_localization = get_package_share_directory("caramelo_localization")
+    
+    # ========== COMPONENTES DO ROBÔ ==========
 
-    declare_start_localization = DeclareLaunchArgument('start_localization', default_value='true', description='Start robot_localization EKF')
-    declare_start_pca9685 = DeclareLaunchArgument('start_pca9685', default_value='true', description='Start PCA9685 hardware interface node')
-
+    # 1. Inicia o nó do ros2_control (ControllerManager) e o robot_state_publisher
     hardware_interface = IncludeLaunchDescription(
-        os.path.join(
-            get_package_share_directory("caramelo_hardware"),
-            "launch",
-            "hardware.launch.py"
-        ),
+        os.path.join(pkg_caramelo_hardware, "launch", "hardware.launch.py"),
+        launch_arguments={'use_sim_time': 'false'}.items()
     )
 
+    # 2. Inicia os spawners para os controladores (mecanum_controller e joint_state_broadcaster)
     controller = IncludeLaunchDescription(
-        os.path.join(
-            get_package_share_directory("caramelo_controller"),
-            "launch",
-            "controller.launch.py"
-        ),
+        os.path.join(pkg_caramelo_controller, "launch", "controller.launch.py"),
+        launch_arguments={'use_sim_time': 'false'}.items()
     )
 
-    laser_driver = Node(
-            package="rplidar_ros",
-            executable="rplidar_node",
-            name="rplidar_node",
-            parameters=[{
-                'serial_port': '/dev/ttyUSB1',
-                'frame_id': 'laser_frame',
-                'angle_compensate': True,
-            }],
-            output="screen"
+    # 3. Driver do Lidar (RPLidar S2)
+    laser_driver_node = Node(
+        package="rplidar_ros",
+        executable="rplidar_node",
+        name="rplidar_node",
+        parameters=[{
+            'channel_type': 'serial',
+            'serial_port': '/dev/ttyUSB1',
+            'serial_baudrate': 1000000,
+            'frame_id': 'laser_frame',
+            'inverted': False,
+            'angle_compensate': True,
+            'scan_mode': 'DenseBoost',
+            'use_sim_time': False,
+        }],
+        output="screen"
     )
     
-    imu_driver = IncludeLaunchDescription(
-        os.path.join(
-            get_package_share_directory("um7"),
-            "launch",
-            "um7_launch.py"
-        ),
-        launch_arguments={
-            'port': '/dev/ttyUSB0'
-        }.items()
+    # 4. Driver do IMU (UM6)
+    imu_driver_node = Node(
+        package="um7", # O pacote no workspace é 'um7'
+        executable="um6_driver", # O executável que você mencionou
+        name="um7_driver",
+        parameters=[{'port': '/dev/ttyUSB0'}],
+        output="screen"
     )
 
-    def maybe_ekf(context):
-        from ament_index_python.packages import PackageNotFoundError
-        launch_nodes = []
-        if context.perform_substitution(start_localization) == 'true':
-            try:
-                ekf_config = os.path.join(get_package_share_directory('caramelo_localization'), 'config', 'ekf.yaml')
-                get_package_share_directory('robot_localization')
-                launch_nodes.append(Node(
-                    package='robot_localization', executable='ekf_node', name='ekf_filter_node', output='screen',
-                    emulate_tty=True,
-                    parameters=[ ekf_config, { 'use_sim_time': LaunchConfiguration('use_sim_time') } ]
-                ))
-            except PackageNotFoundError:
-                pass
-        return launch_nodes
-    ekf_group = OpaqueFunction(function=maybe_ekf)
-
+    # 5. Nó de interface com o hardware PCA9685
     pca9685_node = Node(
-        package='raspberrypi_bringup', executable='pca9685_controller.py', name='pca9685_controller', output='screen',
+        package='raspberrypi_bringup', 
+        executable='pca9685_controller.py', 
+        name='pca9685_controller', 
+        output='screen',
         emulate_tty=True,
-        condition=IfCondition(start_pca9685)
+    )
+
+    # 6. EKF para fusão de odometria e IMU
+    ekf_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[
+            os.path.join(pkg_caramelo_localization, 'config', 'ekf.yaml'),
+            {'use_sim_time': False}
+        ],
     )
 
     return LaunchDescription([
-        declare_start_localization,
-        declare_start_pca9685,
         hardware_interface,
         controller,
-        laser_driver,
-        imu_driver,
-        ekf_group,
-        pca9685_node
+        laser_driver_node,
+        imu_driver_node,
+        pca9685_node,
+        ekf_node,
     ])
+

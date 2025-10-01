@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float64MultiArray
 import board
 import busio
 from adafruit_pca9685 import PCA9685
@@ -18,7 +18,7 @@ class PCA9685Controller(Node):
 
         # Subscription to wheel commands
         self.subscription = self.create_subscription(
-            Float32MultiArray,
+            Float64MultiArray,
             'wheel_commands_raw',
             self.listener_callback,
             10)
