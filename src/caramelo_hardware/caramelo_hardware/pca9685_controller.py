@@ -49,13 +49,15 @@ class PCA9685HardwareInterface(Node):
 
         self.last_pwm_values = [self.zero_pwm] * 4
 
-        # Assina comandos do proxy hardware
+        # Assina comandos do hardware interface
         self.subscription = self.create_subscription(
             Float64MultiArray,
             '/wheel_commands_raw',
             self.wheel_command_callback,
             10
         )
+        
+        self.get_logger().info('Subscription criada no tópico /wheel_commands_raw')
 
         for ch in self.motor_channels.values():
             try:
@@ -78,23 +80,31 @@ class PCA9685HardwareInterface(Node):
         if len(msg.data) != 4:
             self.get_logger().warn('Comando de roda deve ter 4 valores (FL, FR, RL, RR)')
             return
-        # Sem limite de velocidade: converte diretamente a velocidade alvo em PWM (apenas saturação de faixa PWM)
+            
+        # Log dos comandos recebidos (debug)
+        self.get_logger().debug(f'Comandos recebidos: FL={msg.data[0]:.2f}, FR={msg.data[1]:.2f}, RL={msg.data[2]:.2f}, RR={msg.data[3]:.2f}')
+        
+        # Converte velocidades em PWM
         pwm_values = []
         for idx, vel in enumerate(msg.data):
             joint = self.joint_names[idx]
+            # Inverte direção para rodas esquerdas (ajuste conforme sua configuração)
             if joint in ('front_left_wheel_joint', 'back_left_wheel_joint'):
                 vel = -vel
+            
             pwm = int(self.zero_pwm + self.k_pwm * vel)
             pwm = max(self.min_pwm, min(self.max_pwm, pwm))
             pwm_values.append(pwm)
+        
         self.last_pwm_values = pwm_values
 
+        # Aplica PWM aos canais
         for idx, joint in enumerate(self.joint_names):
             ch = self.motor_channels[joint]
             try:
                 self.pca.channels[ch].duty_cycle = pwm_values[idx]
             except Exception as e:
-                self.get_logger().error(f'Falha ao escrever PWM no canal {ch}: {e}')
+                self.get_logger().error(f'Falha ao escrever PWM {pwm_values[idx]} no canal {ch} ({joint}): {e}')
 
 
 def main(args=None):

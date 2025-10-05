@@ -44,19 +44,10 @@ def generate_launch_description():
         }],
         output="screen"
     )
-    
-    # 4. Driver do IMU (UM6)
-    imu_driver_node = Node(
-        package="umx_driver", # O pacote no workspace é 'umx_driver'
-        executable="um6_driver", # O executável que você mencionou
-        name="um7_driver",
-        parameters=[{'port': '/dev/ttyUSB0'}],
-        output="screen"
-    )
 
     # 5. Nó de interface com o hardware PCA9685
     pca9685_node = Node(
-        package='raspberrypi_bringup', 
+        package='caramelo_hardware', 
         executable='pca9685_controller.py', 
         name='pca9685_controller', 
         output='screen',
@@ -79,7 +70,6 @@ def generate_launch_description():
         hardware_interface,
         controller,
         laser_driver_node,
-        imu_driver_node,
         pca9685_node,
         ekf_node,
     ])

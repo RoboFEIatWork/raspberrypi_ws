@@ -5,4 +5,14 @@
          base_class_type="hardware_interface::SystemInterface">
     <description>Proxy hardware system for Caramelo robot bridging ros2_control velocity commands to a topic for a Python PCA9685 driver.</description>
   </class>
+  <class name="caramelo_hardware/CarameloInterface"
+         type="caramelo_hardware::CarameloInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>Hardware interface for Caramelo robot with Arduino encoders and PCA9685 motor control via I2C.</description>
+  </class>
+  <class name="caramelo_hardware/CarameloInterfaceIMU"
+         type="caramelo_hardware::CarameloInterfaceIMU"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>Hardware interface for Caramelo mecanum robot using IMU feedback and PCA9685 motor control via topics.</description>
+  </class>
 </library>

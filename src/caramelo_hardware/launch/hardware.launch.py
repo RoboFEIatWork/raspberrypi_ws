@@ -5,9 +5,21 @@ from launch import LaunchDescription
 from launch.substitutions import Command
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition, UnlessCondition
 
 
 def generate_launch_description():
+
+    use_mpu = LaunchConfiguration("use_mpu")
+
+    use_mpu_arg = DeclareLaunchArgument(
+        "use_mpu",
+        default_value="true",
+        description="Use MPU6050 IMU driver if true, otherwise use UM6 driver"
+    )
+
 
     robot_description = ParameterValue(
         Command(
@@ -51,7 +63,29 @@ def generate_launch_description():
         ]
     )
 
+
+    # Node for MPU6050 driver (only if use_mpu is true)
+    mpu6050_driver_node = Node(
+        package="caramelo_hardware",
+        executable="mpu6050_driver.py",
+        condition=IfCondition(use_mpu),
+        output="screen"
+    )
+
+    # Node for UM6 driver (only if use_mpu is false)
+    um6_driver_node = Node(
+        package="umx_driver",
+        executable="um6_driver",
+        name="um6_driver",
+        parameters=[{'port': '/dev/ttyUSB0'}],
+        condition=UnlessCondition(use_mpu),
+        output="screen"
+    )
+
     return LaunchDescription([
+        use_mpu_arg,
         robot_state_publisher_node,
         controller_manager,
+        mpu6050_driver_node,
+        um6_driver_node,
     ])
