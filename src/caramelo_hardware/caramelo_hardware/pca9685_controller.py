@@ -26,9 +26,12 @@ class PCA9685HardwareInterface(Node):
         pwm_range = min(self.zero_pwm - self.min_pwm, self.max_pwm - self.zero_pwm)
         self.k_pwm = pwm_range / self.max_wheel_rad_s
 
+        # Endereço I2C explícito para evitar confusão
+        self.PCA9685_ADDRESS = 0x40  # Endereço padrão do PCA9685
+        
         try:
             self.i2c = busio.I2C(board.SCL, board.SDA)
-            self.pca = PCA9685(self.i2c)
+            self.pca = PCA9685(self.i2c, address=self.PCA9685_ADDRESS)
             self.pca.frequency = self.PWM_FREQ
         except Exception as e:
             self.get_logger().error(f'Falha ao inicializar PCA9685: {e}')
@@ -66,7 +69,7 @@ class PCA9685HardwareInterface(Node):
                 self.get_logger().warn(f'Falha ao setar neutro no canal {ch}: {e}')
 
         self.get_logger().info(
-            f'PCA9685 iniciado (hybrid). limite_roda={self.max_wheel_rad_s_limit:.2f} motor={max_wheel_rad_s_motor:.2f} usado={self.max_wheel_rad_s:.2f} k_pwm={self.k_pwm:.2f}'
+            f'PCA9685 iniciado no endereço I2C 0x{self.PCA9685_ADDRESS:02X}. limite_roda={self.max_wheel_rad_s_limit:.2f} motor={max_wheel_rad_s_motor:.2f} usado={self.max_wheel_rad_s:.2f} k_pwm={self.k_pwm:.2f}'
         )
 
     def __del__(self):

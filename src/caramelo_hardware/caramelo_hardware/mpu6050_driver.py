@@ -17,7 +17,7 @@ ACCEL_ZOUT_H = 0x3F
 GYRO_XOUT_H  = 0x43
 GYRO_YOUT_H  = 0x45
 GYRO_ZOUT_H  = 0x47
-DEVICE_ADDRESS = 0x68
+DEVICE_ADDRESS = 0x68  # Endereço I2C do MPU6050
 
 
 class MPU6050_Driver(Node):
@@ -61,8 +61,9 @@ class MPU6050_Driver(Node):
 
             self.imu_msg_.header.stamp = self.get_clock().now().to_msg()
             self.imu_pub_.publish(self.imu_msg_)
-        except OSError:
+        except OSError as e:
             self.is_connected_ = False
+            self.get_logger().warn(f'MPU6050 desconectado: {e}. Tentando reconectar...')
 
     def init_i2c(self):
         try:
@@ -73,8 +74,10 @@ class MPU6050_Driver(Node):
             self.bus_.write_byte_data(DEVICE_ADDRESS, GYRO_CONFIG, 24)
             self.bus_.write_byte_data(DEVICE_ADDRESS, INT_ENABLE, 1)
             self.is_connected_ = True
-        except OSError:
+            self.get_logger().info(f'MPU6050 conectado com sucesso no endereço I2C 0x{DEVICE_ADDRESS:02X}')
+        except OSError as e:
             self.is_connected_ = False
+            self.get_logger().error(f'Falha ao conectar MPU6050 no endereço 0x{DEVICE_ADDRESS:02X}: {e}')
         
     def read_raw_data(self, addr):
         #Accelero and Gyro value are 16-bit
