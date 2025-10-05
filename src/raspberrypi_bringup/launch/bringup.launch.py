@@ -27,33 +27,6 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': 'false'}.items()
     )
 
-    # 3. Driver do Lidar (RPLidar S2)
-    laser_driver_node = Node(
-        package="rplidar_ros",
-        executable="rplidar_node",
-        name="rplidar_node",
-        parameters=[{
-            'channel_type': 'serial',
-            'serial_port': '/dev/ttyUSB1',
-            'serial_baudrate': 1000000,
-            'frame_id': 'laser_frame',
-            'inverted': False,
-            'angle_compensate': True,
-            'scan_mode': 'DenseBoost',
-            'use_sim_time': False,
-        }],
-        output="screen"
-    )
-
-    # 5. Nó de interface com o hardware PCA9685
-    pca9685_node = Node(
-        package='caramelo_hardware', 
-        executable='pca9685_controller.py', 
-        name='pca9685_controller', 
-        output='screen',
-        emulate_tty=True,
-    )
-
     # 6. EKF para fusão de odometria e IMU
     ekf_node = Node(
         package='robot_localization',
@@ -69,8 +42,6 @@ def generate_launch_description():
     return LaunchDescription([
         hardware_interface,
         controller,
-        laser_driver_node,
-        pca9685_node,
         ekf_node,
     ])
 

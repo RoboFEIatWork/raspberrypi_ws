@@ -6,7 +6,7 @@
 
         <!-- Plugin de hardware híbrido: proxy C++ + driver Python PCA9685 -->
         <hardware>
-            <plugin>caramelo_hardware/CarameloProxySystem</plugin>
+            <plugin>caramelo_hardware/CarameloInterfaceIMU</plugin>
         </hardware>
 
         <!-- Front Left Wheel Joint -->

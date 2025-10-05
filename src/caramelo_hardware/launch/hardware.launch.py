@@ -16,10 +16,9 @@ def generate_launch_description():
 
     use_mpu_arg = DeclareLaunchArgument(
         "use_mpu",
-        default_value="true",
+        default_value="false",
         description="Use MPU6050 IMU driver if true, otherwise use UM6 driver"
     )
-
 
     robot_description = ParameterValue(
         Command(
@@ -82,10 +81,39 @@ def generate_launch_description():
         output="screen"
     )
 
+    # 3. Driver do Lidar (RPLidar S2)
+    laser_driver_node = Node(
+        package="rplidar_ros",
+        executable="rplidar_node",
+        name="rplidar_node",
+        parameters=[{
+            'channel_type': 'serial',
+            'serial_port': '/dev/ttyUSB1',
+            'serial_baudrate': 1000000,
+            'frame_id': 'laser_frame',
+            'inverted': False,
+            'angle_compensate': True,
+            'scan_mode': 'DenseBoost',
+            'use_sim_time': False,
+        }],
+        output="screen"
+    )
+
+    # 5. Nó de interface com o hardware PCA9685
+    pca9685_node = Node(
+        package='caramelo_hardware', 
+        executable='pca9685_controller.py', 
+        name='pca9685_controller', 
+        output='screen',
+        emulate_tty=True,
+    )
+
     return LaunchDescription([
         use_mpu_arg,
         robot_state_publisher_node,
         controller_manager,
         mpu6050_driver_node,
         um6_driver_node,
+        laser_driver_node,
+        pca9685_node,
     ])
