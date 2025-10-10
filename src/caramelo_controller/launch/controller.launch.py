@@ -30,6 +30,7 @@ def generate_launch_description():
             "--controller-manager",
             "/controller_manager",
         ],
+        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
         output='screen'
     )
 
@@ -41,6 +42,7 @@ def generate_launch_description():
             "mecanum_controller",
             "--controller-manager", "/controller_manager"
         ],
+        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
         output='screen'
     )
 

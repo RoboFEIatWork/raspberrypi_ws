@@ -13,11 +13,18 @@ from launch.conditions import IfCondition, UnlessCondition
 def generate_launch_description():
 
     use_mpu = LaunchConfiguration("use_mpu")
+    use_sim_time = LaunchConfiguration("use_sim_time")
 
     use_mpu_arg = DeclareLaunchArgument(
         "use_mpu",
         default_value="false",
         description="Use MPU6050 IMU driver if true, otherwise use UM6 driver"
+    )
+
+    use_sim_time_arg = DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="false",
+        description="Use simulated time"
     )
 
     robot_description = ParameterValue(
@@ -42,7 +49,7 @@ def generate_launch_description():
         output="screen",
         parameters=[{
             "robot_description": robot_description,
-            "use_sim_time": False
+            "use_sim_time": use_sim_time
         }]
     )
 
@@ -53,7 +60,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"robot_description": robot_description,
-            "use_sim_time": False},
+            "use_sim_time": use_sim_time},
             os.path.join(
                 get_package_share_directory("caramelo_controller"),
                 "config",
@@ -91,10 +98,10 @@ def generate_launch_description():
             'serial_port': '/dev/ttyUSB1',
             'serial_baudrate': 1000000,
             'frame_id': 'laser_frame',
-            'inverted': False,
+            'inverted': True,
             'angle_compensate': True,
             'scan_mode': 'DenseBoost',
-            'use_sim_time': False,
+            'use_sim_time': use_sim_time,
         }],
         output="screen"
     )
@@ -110,6 +117,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         use_mpu_arg,
+        use_sim_time_arg,
         robot_state_publisher_node,
         controller_manager,
         mpu6050_driver_node,
